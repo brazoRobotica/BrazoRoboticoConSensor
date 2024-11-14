@@ -18,7 +18,11 @@ const int pinJoyButton2 = 10;
 bool buttonPressed = false;   // Almacena si el botón está presionado
 bool previousButtonState = HIGH; // Estado anterior del botón para detectar cambios
 
+const int pinTrigger = 12;
+const int pinEcho = 11;
 
+const int safeDistance = 10; // Define que tan cerca debe estar el objeto para que el brazo frene.
+long duration;
 // Ángulos iniciales y objetivos para los servos
 int angle1 = 80; // Giro
 int angle2 = 80; // Distancia
@@ -44,17 +48,33 @@ void moveSmoothly(Servo &servo, int &currentAngle, int targetAngle) {
   }
   servo.write(currentAngle);
 }
-
+/*
+void scanForObject(Servo &servo,Servo &servo1, Servo &servo2,int distancia, int safeDistance, int &currentAngle, int targetAngle){
+    servo.write(90);
+    servo1.write(90);
+    while (distancia > safeDistance){
+      if(currentAngle < 80 && currentAngle>=0){
+        moveSmoothly(servo2,currentAngle,0);
+        moveSmoothly(servo2,currentAngle,80);
+      }else{
+        moveSmoothly(servo2,currentAngle,160);
+        moveSmoothly(servo2,currentAngle,79);
+      }
+    }
+    stop(servo2);
+}*/
 void setup() {
   // Configurar los botones de los joysticks como entrada
   pinMode(pinJoyButton1, INPUT_PULLUP);
   pinMode(pinJoyButton2, INPUT_PULLUP);
-  
+  pinMode(pinTrigger, OUTPUT);
+  pinMode(pinEcho, INPUT);
   // Conectar los servos a los pines correspondientes
   servo1.attach(8); //Grio
   servo2.attach(7); //Distancia 
   servo3.attach(6); //Pinza
   servo4.attach(5); //Altura
+
 
   // Posición inicial de los servos
   servo1.write(angle1);
@@ -102,7 +122,7 @@ void loop() {
   moveSmoothly(servo1, angle1, targetAngle1);
   moveSmoothly(servo2, angle2, targetAngle2);
   moveSmoothly(servo4, angle4, targetAngle4);
-
+  //int distance = measureDistance();
   /*// Opcional: Mostrar el valor de los ángulos en el monitor serial
   Serial.print("Servo1: ");
   Serial.print(angle1);
@@ -115,4 +135,25 @@ void loop() {
   */
   // Pausa pequeña para suavizar el movimiento
   delay(20);
+
+}/*
+int measureDistance() {
+// Primero, generar un pulso corto de 2-5 microsegundos.
+    digitalWrite(pinTrigger, LOW);
+    delayMicroseconds(5);
+    digitalWrite(pinTrigger, HIGH);
+// Después de ajustar un nivel de señal alto, esperamos unos 10 microsegundos. En este punto el sensor enviará señales con una frecuencia de 40 kHz.
+    delayMicroseconds(10);
+    digitalWrite(pinTrigger, LOW);
+
+// Tiempo de retardo de la señal acústica en el sonar.
+    duration = pulseIn(pinEcho, HIGH);
+
+// Convertir el tiempo a distancia (cm).
+    int distance = (duration / 2) / 29.1;
+    return distance;
 }
+
+void stop(Servo &servo) {
+    servo.detach(); // Deja de mandar señales y frena el servo en su posición actual. 
+}*/
