@@ -34,10 +34,10 @@ bool previousButtonState2 = HIGH; // Estado anterior del botón para detectar ca
 
 // Ángulos iniciales y objetivos para los servos
 int angleBase = 90;
-int angleAltura = 90;
-int angleDistancia = 90;
+int angleAltura = 100;
+int angleDistancia = 70;
 int anglePinza = 20;
-const int safeDistance = 12; // Define que tan cerca debe estar el objeto para que el brazo frene.
+const int safeDistance = 9; // Define que tan cerca debe estar el objeto para que el brazo frene.
 
 // Umbral para considerar el joystick en reposo
 const int umbral = 300;
@@ -50,10 +50,10 @@ const int retraso = 5;
 // Limites de los ejes
 const int limiteMaxBase = 170;  // izquierdo
 const int limiteMinBase = 10;   // derecho
-const int limiteMaxAltura = 130; // min ?
-const int limiteMinAltura = 60;  // max ?
-const int limiteMaxDistancia = 150; 
-const int limiteMinDistancia = 60;
+const int limiteMaxAltura = 130; // techo
+const int limiteMinAltura = 40;  // base
+const int limiteMaxDistancia = 150; //Piso
+const int limiteMinDistancia = 10;  //Base
 
 void setup() {
   // Configurar los botones de los joysticks como entrada.
@@ -91,41 +91,43 @@ void loop() {
   int yValue2 = analogRead(pinJoyY2);
   delay(retraso);
   bool buttonState1 = digitalRead(pinJoyButton1); 
-  bool buttonState2 = digitalRead(pinJoyButton2); 
-
+  bool buttonState2 = digitalRead(pinJoyButton2);
+  
   // Comprobar si se ha presionado el botón para alternar el ángulo del servo 3
-  if (buttonState2 == LOW && previousButtonState2 == HIGH) {
-    buttonPressed2 = !buttonPressed2; // Alterna el estado del botón
-    if (anglePinza == 55) {
-      anglePinza = 15;  // Si el ángulo es 50, cambia a 15. Angulo de apertura
+  if (buttonState2 == LOW) {
+    delay(110);
+    //buttonPressed2 = !buttonPressed2; // Alterna el estado del botón
+    if (anglePinza == 45) {
+      anglePinza = 20;  // Si el ángulo es 50, cambia a 15. Angulo de apertura
     } else {
-      anglePinza = 55;  // Si no, cambia a 50. Angulo de cierre.
+      anglePinza = 45;  // Si no, cambia a 50. Angulo de cierre.
     }
   }
+  
   // Función de busqueda
-  if (buttonState1 == LOW && previousButtonState1 == HIGH) {
-    buttonPressed1 = !buttonPressed1;
+  if (buttonState1 == LOW) {
+    //buttonPressed1 = !buttonPressed1;
     scanForObject(servoBase, servoAltura, servoPinza, safeDistance);
   }
 
-  if(abs(yValue1 - valorReposo) > umbral) {
-    if(yValue1 > valorReposo && angleBase <= limiteMaxBase) {
+  if(abs(yValue1 - valorReposo) > umbral) { //Base
+    if(yValue1 > valorReposo && angleBase < limiteMaxBase) {
       angleBase += pasos;
-    } else if(yValue1 < valorReposo && angleBase >= limiteMinBase) {
+    } else if(yValue1 < valorReposo && angleBase > limiteMinBase) {
       angleBase -= pasos;
     }
   }
-  if(abs(xValue1 - valorReposo) > umbral) {
-    if(xValue1 > valorReposo && angleAltura <= limiteMaxAltura) {
+  if(abs(xValue1 - valorReposo) > umbral) { //Altura
+    if(xValue1 > valorReposo && angleAltura < limiteMaxAltura) {
       angleAltura += pasos;
-    } else if(xValue1 < valorReposo && angleAltura >= limiteMinAltura) {
+    } else if(xValue1 < valorReposo && angleAltura > limiteMinAltura) {
       angleAltura -= pasos;
     }
   }
-  if(abs(xValue2 - valorReposo) > umbral) {
-    if(xValue2 < valorReposo && angleDistancia <= limiteMaxDistancia) {
+  if(abs(xValue2 - valorReposo) > umbral) { //Distancia
+    if(xValue2 < valorReposo && angleDistancia < limiteMaxDistancia) {
       angleDistancia += pasos;
-    } else if(xValue2 > valorReposo && angleDistancia >= limiteMinDistancia) {
+    } else if(xValue2 > valorReposo && angleDistancia > limiteMinDistancia) {
       angleDistancia -= pasos;
     }
   }
@@ -134,7 +136,7 @@ void loop() {
   servoDistancia.write(angleDistancia);
   servoAltura.write(angleAltura);
   servoPinza.write(anglePinza);
-  delay(5);
+  delay(35);
 /*
   //Para ver todos los valores por serial.
   Serial.print("ServoBase: ");
@@ -188,17 +190,17 @@ void scanForObject(Servo &servoBase, Servo &servoAltura, Servo &servoPinza, int 
       delay(500);
       break;
     }*/
-    int distance = measureDistance();
+    //int distance = measureDistance();
     // Movimiento del brazo en 180 grados
     for (int angle = 10; angle <= 170; angle += 10) {
     // falta ver que cuando termina el for igualmente agarra un objeto por mas que lo detecte, falta una funcion para lo de abajo del for
     // en el primer llamado, detecta distancia 0 y agarra un objeto
       angleBase = angle;
+      int distance = measureDistance();
       Serial.println(angle);
       servoBase.write(angleBase);
       delay(1000);
 
-      int distance = measureDistance();
       Serial.print("Distancia:");
       Serial.println(distance);
       delay(500);
